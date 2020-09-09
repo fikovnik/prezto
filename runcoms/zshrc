@@ -51,7 +51,6 @@ refresh-env() {
 
 kill-server() {
   local pid=$(lsof -Pwni tcp | sed 1d | fzf -m --prompt='kill:tcp> ' | awk '{print $2}')
-
   if [ "x$pid" != "x" ]; then
     echo $pid | xargs kill -${1:-9}
   fi

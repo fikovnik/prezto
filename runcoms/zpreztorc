@@ -50,6 +50,10 @@ zstyle ':prezto:load' pmodule \
   'quickjump' \
   'git-open'
 
+#
+# give a preview of commandline arguments when completing `kill`
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
+
 # Autosuggestions
 #
 
