@@ -10,24 +10,64 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# functions
+refresh-env() {
+  local socket_path="$(tmux show-environment | sed -n 's/^SSH_AUTH_SOCK=//p')"
+
+  if ! [[ "$socket_path" ]]; then
+    echo 'no socket path' >&2
+    return 1
+  else
+    export SSH_AUTH_SOCK="$socket_path"
+  fi
+}
+
+kill-server() {
+  local pid=$(lsof -Pwni tcp | sed 1d | eval "fzf ${FZF_DEFAULT_OPTS} -m --header='[kill:tcp]'" | awk '{print $2}')
+
+  if [ "x$pid" != "x" ]; then
+    echo $pid | xargs kill -${1:-9}
+  fi
+}
+
+ff() {
+    if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+    local file
+    file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages "$*" | fzf +m --preview="rg --ignore-case --pretty --context 10 '"$*"' {}")" && \
+      "$VISUAL" "$file" || \
+      return 1
+}
+
+__source_if_exists() {
+  [[ -f "$1" ]] && source "$1"
+}
+
+# complete pass **<TAB>
+_fzf_complete_pass() {
+  local store="$HOME/.password-store"
+  _fzf_complete --multi --reverse --prompt="pass> " -- "$@" < <(
+    fd -e gpg -t file -c never . "$store" | sed "s|$store/\(.*\)\.gpg$|\\1|"
+  )
+}
+
+__source_if_exists /usr/share/fzf/key-bindings.zsh
+__source_if_exists /usr/share/fzf/completion.zsh
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+__source_if_exists ~/.p10k.zsh
+
 # dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-
 alias vim=nvim
 alias emacs='emacs -nw'
-alias e='emacsclient -t'
+alias e="emacsclient -nw"
 
 HISTSIZE=50000
 SAVEHIST=50000
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# give a preview of commandline arguments when completing `kill`
-zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
-
 EDITOR=vim
-VISUAL='emacsclient -t'
+VISUAL="$HOME/bin/e.sh"
+
+[[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
 
 # asdf version manager
 ASDF_DIR="$HOME/.asdf"
