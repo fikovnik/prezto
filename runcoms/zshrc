@@ -13,11 +13,24 @@ fi
 # dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
-
+alias vim=nvim
 alias emacs='emacs -nw'
+alias e='emacsclient -t'
 
 HISTSIZE=50000
 SAVEHIST=50000
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# give a preview of commandline arguments when completing `kill`
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
+
+EDITOR=vim
+VISUAL=emacsclient -t
+
+# asdf version manager
+ASDF_DIR="$HOME/.asdf"
+# setup some additional completions
+[[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
+[[ -f "$ASDF_DIR/asdf.sh" ]] && source "$ASDF_DIR/asdf.sh"
