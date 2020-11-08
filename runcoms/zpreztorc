@@ -45,14 +45,9 @@ zstyle ':prezto:load' pmodule \
   'git' \
   'pacman' \
   'history-substring-search' \
-  'fzf-tab' \
+  'fasd' \
+  'fzf-fasd' \
   'git-open'
-
-# give a preview of commandline arguments when completing `kill`
-zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
-# fix https://github.com/Aloxaf/fzf-tab/issues/24
-zstyle ':completion:*' format '-- %d --'
-
 
 # Autosuggestions
 #

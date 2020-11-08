@@ -33,9 +33,9 @@
 	path = modules/prompt/external/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
 	shallow = true
-[submodule "modules/fzf-tab"]
-	path = modules/fzf-tab
-	url = https://github.com/Aloxaf/fzf-tab
 [submodule "modules/git-open"]
 	path = modules/git-open
 	url = https://github.com/paulirish/git-open
+[submodule "modules/fzf-fasd"]
+	path = modules/fzf-fasd
+	url = https://github.com/wookayin/fzf-fasd
