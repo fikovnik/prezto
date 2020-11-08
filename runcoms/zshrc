@@ -27,7 +27,7 @@ SAVEHIST=50000
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
 
 EDITOR=vim
-VISUAL=emacsclient -t
+VISUAL='emacsclient -t'
 
 # asdf version manager
 ASDF_DIR="$HOME/.asdf"
