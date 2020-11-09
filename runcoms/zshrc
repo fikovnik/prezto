@@ -52,6 +52,7 @@ _fzf_complete_pass() {
 
 __source_if_exists /usr/share/fzf/key-bindings.zsh
 __source_if_exists /usr/share/fzf/completion.zsh
+__source_if_exists /usr/share/doc/fzf/examples/key-bindings.zsh
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 __source_if_exists ~/.p10k.zsh
 
