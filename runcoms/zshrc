@@ -61,6 +61,7 @@ alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias vim=nvim
 alias emacs='emacs -nw'
 alias e="emacsclient -nw"
+alias rust=evcxr
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -69,6 +70,8 @@ EDITOR=vim
 VISUAL="$HOME/bin/e.sh"
 
 [[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+
+[[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 
 # asdf version manager
 ASDF_DIR="$HOME/.asdf"
