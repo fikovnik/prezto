@@ -10,6 +10,31 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
+# FZF {{{
+_fzf_compgen_path() {
+  fd --hidden --follow --exclude ".git" . "$1"
+}
+
+_fzf_compgen_dir() {
+  fd --type d --hidden --follow --exclude ".git" . "$1"
+}
+
+_fzf_complete_pass() {
+  local store="$HOME/.password-store"
+  _fzf_complete --multi --reverse --prompt="pass> " -- "$@" < <(
+    fd -e gpg -t file -c never . "$store" | sed "s|$store/\(.*\)\.gpg$|\\1|"
+  )
+}
+
+export FZF_PREVIEW_MAX_LINES=100
+export FZF_PREVIEW_DIR_OPTS="tree -L 3 -C {} 2>/dev/null | head -$FZF_PREVIEW_MAX_LINES"
+export FZF_PREVIEW_FILE_OPTS="bat -p --color=always --line-range :$FZF_PREVIEW_MAX_LINES {} 2> /dev/null"
+export FZF_PREVIEW_OPTS="($FZF_PREVIEW_FILE_OPTS || $FZF_PREVIEW_DIR_OPTS)"
+export FZF_CTRL_T_OPTS="--preview '$FZF_PREVIEW_OPTS'"
+export FZF_ALT_C_OPTS="--preview '$FZF_PREVIEW_DIR_OPTS'"
+
+# }}}
+
 # functions
 refresh-env() {
   local socket_path="$(tmux show-environment | sed -n 's/^SSH_AUTH_SOCK=//p')"
@@ -23,7 +48,7 @@ refresh-env() {
 }
 
 kill-server() {
-  local pid=$(lsof -Pwni tcp | sed 1d | eval "fzf ${FZF_DEFAULT_OPTS} -m --header='[kill:tcp]'" | awk '{print $2}')
+  local pid=$(lsof -Pwni tcp | sed 1d | sk -m --prompt='kill:tcp> ' | awk '{print $2}')
 
   if [ "x$pid" != "x" ]; then
     echo $pid | xargs kill -${1:-9}
@@ -31,23 +56,63 @@ kill-server() {
 }
 
 ff() {
-    if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
-    local file
-    file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages "$*" | fzf +m --preview="rg --ignore-case --pretty --context 10 '"$*"' {}")" && \
-      "$VISUAL" "$file" || \
-      return 1
+  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
+  local file
+  file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages "$*" | sk --no-multi --preview="rg --ignore-case --pretty --context 10 '"$*"' {}")" && \
+    "$VISUAL" "$file" || \
+    return 1
 }
+
+# # edit given file or search in recently used files
+# v() {
+#   local file
+#   # if arg1 is a path to existing file then simply open it in the editor
+#   test -e "$1" && $EDITOR "$@" && return
+#   # else use fasd and fzf to search for recent files
+#   file="$(fasd -Rfl "$*" | sk --no-sort -m --preview $FZF_PREVIEW_OPTS --bind 'ctrl-j:print-query')"
+#   fzf_ret=$?
+#   if [ $fzf_ret -eq 0 ]; then
+#     echo "${file}" | xargs $EDITOR
+#   elif [ "$#" -ge 1 ]; then
+#     $EDITOR "$@"
+#   else
+#     true
+#   fi
+# }
+#
+# cd into given dir or search in recently used dirs
+function j() {
+  [ $# -eq 1 ] && test -d "$1" && cd "$1" && return
+  local dir
+  dir="$(fasd -Rdl | rg "$*")"
+  dir_size=$(echo "$dir" | wc -l)
+  if [ $dir_size -eq 1 ]; then
+    cd "${dir}"
+  elif [ $dir_size -gt 1 ]; then
+    # dir=$(echo -e "$dir" | fzf --ansi -0 --no-sort +m --preview $FZF_PREVIEW_DIR_OPTS) && cd "${dir}" || return 1
+    dir=$(echo -e "$dir" | sk --query "$*" --prompt 'z> ' --ansi --tac --no-sort --no-multi --preview $FZF_PREVIEW_DIR_OPTS) && cd "${dir}" || return 1
+  else
+    return 0
+  fi
+}
+#
+# function z_zsh_widget {
+#   z; ret=$?; zle accept-line; return $ret
+# }
+#
+# function v_zsh_widget {
+#   v; ret=$?; zle accept-line; return $ret
+# }
+#
+# # bind C-space
+# zle -N z_zsh_widget
+# bindkey '^@' z_zsh_widget
+# # bind C-S-space
+# zle -N v_zsh_widget
+# bindkey '^[[32;6u' v_zsh_widget
 
 __source_if_exists() {
   [[ -f "$1" ]] && source "$1"
-}
-
-# complete pass **<TAB>
-_fzf_complete_pass() {
-  local store="$HOME/.password-store"
-  _fzf_complete --multi --reverse --prompt="pass> " -- "$@" < <(
-    fd -e gpg -t file -c never . "$store" | sed "s|$store/\(.*\)\.gpg$|\\1|"
-  )
 }
 
 __source_if_exists /usr/share/fzf/key-bindings.zsh
@@ -58,18 +123,38 @@ __source_if_exists ~/.p10k.zsh
 
 # dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-alias vim=nvim
-alias emacs='emacs -nw'
-alias e="emacsclient -nw"
 alias rust=evcxr
+alias emacs='emacs -nw'
+alias vi=vim
 
 HISTSIZE=50000
 SAVEHIST=50000
 
 EDITOR=vim
-VISUAL="$HOME/bin/e.sh"
+VISUAL=vim
 
-[[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+alias e=$EDITOR
+alias f=$EDITOR
+alias v=xdg-open
+
+# bind C-BS
+bindkey '^[[127;5u' backward-kill-word
+
+
+# FASD {{{
+# I want to resolve links
+_FASD_RESOLVE_SYMLINKS=1
+unalias j
+# }}}
+
+# the fuck
+eval $(thefuck --alias fck)
+
+# [[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+if command -v gpg-connect-agent &>/dev/null; then
+   export GPG_TTY=$(tty)
+   gpg-connect-agent updatestartuptty /bye >/dev/null
+fi
 
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 
