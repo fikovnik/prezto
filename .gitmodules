@@ -36,6 +36,6 @@
 [submodule "modules/git-open"]
 	path = modules/git-open
 	url = https://github.com/paulirish/git-open
-[submodule "modules/fzf-fasd"]
-	path = modules/fzf-fasd
-	url = https://github.com/wookayin/fzf-fasd
+[submodule "modules/quickjump"]
+	path = modules/quickjump
+	url = git@github.com:fikovnik/zsh-quickjump.git
