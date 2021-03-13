@@ -148,7 +148,8 @@ unalias j
 # }}}
 
 # the fuck
-eval $(thefuck --alias fck)
+command -v thefuck &> /dev/null && eval $(thefuck --alias fck)
+
 
 # [[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
 if command -v gpg-connect-agent &>/dev/null; then
