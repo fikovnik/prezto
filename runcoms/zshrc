@@ -26,12 +26,14 @@ _fzf_complete_pass() {
   )
 }
 
-export FZF_PREVIEW_MAX_LINES=100
-export FZF_PREVIEW_DIR_OPTS="tree -L 3 -C {} 2>/dev/null | head -$FZF_PREVIEW_MAX_LINES"
-export FZF_PREVIEW_FILE_OPTS="bat -p --color=always --line-range :$FZF_PREVIEW_MAX_LINES {} 2> /dev/null"
-export FZF_PREVIEW_OPTS="($FZF_PREVIEW_FILE_OPTS || $FZF_PREVIEW_DIR_OPTS)"
-export FZF_CTRL_T_OPTS="--preview '$FZF_PREVIEW_OPTS'"
-export FZF_ALT_C_OPTS="--preview '$FZF_PREVIEW_DIR_OPTS'"
+FZF_PREVIEW_MAX_LINES=100
+FZF_PREVIEW_DIR_OPTS="tree -L 3 -C {} 2>/dev/null | head -$FZF_PREVIEW_MAX_LINES"
+FZF_PREVIEW_FILE_OPTS="bat -p --color=always --line-range :$FZF_PREVIEW_MAX_LINES {} 2> /dev/null"
+FZF_PREVIEW_OPTS="($FZF_PREVIEW_FILE_OPTS || $FZF_PREVIEW_DIR_OPTS)"
+
+export FZF_CTRL_T_OPTS="--preview '$FZF_PREVIEW_OPTS' --bind 'ctrl-p:toggle-preview' --preview-window hidden --header ':: C-p (toggle preview)'"
+export FZF_ALT_C_OPTS="--preview '$FZF_PREVIEW_DIR_OPTS' --bind 'ctrl-p:toggle-preview' --preview-window hidden --header ':: C-p (toggle preview)'"
+export BAT_THEME=TwoDark
 
 # }}}
 
@@ -48,38 +50,51 @@ refresh-env() {
 }
 
 kill-server() {
-  local pid=$(lsof -Pwni tcp | sed 1d | sk -m --prompt='kill:tcp> ' | awk '{print $2}')
+  local pid=$(lsof -Pwni tcp | sed 1d | fzf -m --prompt='kill:tcp> ' | awk '{print $2}')
 
   if [ "x$pid" != "x" ]; then
     echo $pid | xargs kill -${1:-9}
   fi
 }
 
-ff() {
+_do_fs() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
   local file
-  file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages "$*" | sk --no-multi --preview="rg --ignore-case --pretty --context 10 '"$*"' {}")" && \
-    "$VISUAL" "$file" || \
-    return 1
+  file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages $_DO_FS_EXTRA "$*" | fzf -m --preview="rg --ignore-case --pretty --context 10 '"$*"' --exit-0 {}")"
+  if [ $? -eq 0 ]; then
+    [[ -n "$files" ]] && xargs $VISUAL <<< $files
+  fi
 }
 
-# # edit given file or search in recently used files
-# v() {
-#   local file
-#   # if arg1 is a path to existing file then simply open it in the editor
-#   test -e "$1" && $EDITOR "$@" && return
-#   # else use fasd and fzf to search for recent files
-#   file="$(fasd -Rfl "$*" | sk --no-sort -m --preview $FZF_PREVIEW_OPTS --bind 'ctrl-j:print-query')"
-#   fzf_ret=$?
-#   if [ $fzf_ret -eq 0 ]; then
-#     echo "${file}" | xargs $EDITOR
-#   elif [ "$#" -ge 1 ]; then
-#     $EDITOR "$@"
-#   else
-#     true
-#   fi
-# }
-#
+fsa() {
+  _DO_FS_EXTRA="-uuu" _do_fs "$*"
+}
+
+fs() {
+  _do_fs "$*"
+}
+
+_do_ff() {
+  local out key files cmd
+  IFS=$'\n' \
+    out="$(fd --type f $_DO_FF_EXTRA "$*" | fzf -m --exit-0 --preview=$FZF_PREVIEW_OPTS --bind 'ctrl-p:toggle-preview' --preview-window hidden --expect=ctrl-o --header ":: C-p (toggle preview) C-o (open)")"
+  if [ $? -eq 0 ]; then
+    key=$(head -1 <<< "$out")
+    files=$(tail +2 <<< "$out")
+    cmd=$VISUAL
+    [[ "$key" == "ctrl-o" ]] && cmd="xdg-open"
+    [[ -n "$files" ]] && xargs $cmd <<< $files
+  fi
+}
+
+ffa() {
+  _DO_FF_EXTRA="-HI" _do_ff "$*"
+}
+
+ff() {
+  _DO_FF_EXTRA="" _do_ff "$*"
+}
+
 # cd into given dir or search in recently used dirs
 function j() {
   [ $# -eq 1 ] && test -d "$1" && cd "$1" && return
@@ -89,27 +104,11 @@ function j() {
   if [ $dir_size -eq 1 ]; then
     cd "${dir}"
   elif [ $dir_size -gt 1 ]; then
-    # dir=$(echo -e "$dir" | fzf --ansi -0 --no-sort +m --preview $FZF_PREVIEW_DIR_OPTS) && cd "${dir}" || return 1
-    dir=$(echo -e "$dir" | sk --query "$*" --prompt 'z> ' --ansi --tac --no-sort --no-multi --preview $FZF_PREVIEW_DIR_OPTS) && cd "${dir}" || return 1
+    dir=$(echo -e "$dir" | fzf --ansi -0 --no-sort --no-multi --query "$*" --preview $FZF_PREVIEW_DIR_OPTS --bind 'ctrl-p:toggle-preview' --preview-window hidden --header ":: C-p (toggle preview)") && cd "${dir}" || return 1
   else
     return 0
   fi
 }
-#
-# function z_zsh_widget {
-#   z; ret=$?; zle accept-line; return $ret
-# }
-#
-# function v_zsh_widget {
-#   v; ret=$?; zle accept-line; return $ret
-# }
-#
-# # bind C-space
-# zle -N z_zsh_widget
-# bindkey '^@' z_zsh_widget
-# # bind C-S-space
-# zle -N v_zsh_widget
-# bindkey '^[[32;6u' v_zsh_widget
 
 __source_if_exists() {
   [[ -f "$1" ]] && source "$1"
