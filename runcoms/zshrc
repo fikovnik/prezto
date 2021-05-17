@@ -99,7 +99,7 @@ ff() {
 function j() {
   [ $# -eq 1 ] && test -d "$1" && cd "$1" && return
   local dir
-  dir="$(fasd -Rdl | rg "$*")"
+  dir="$(fasd -Rdl | rg -i "$*")"
   dir_size=$(echo "$dir" | wc -l)
   if [ $dir_size -eq 1 ]; then
     cd "${dir}"
