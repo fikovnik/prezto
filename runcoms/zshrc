@@ -56,6 +56,19 @@ kill-server() {
   fi
 }
 
+vdiff () {
+    if [ $# -ne 2 ] ; then
+        echo "Usage: vdiff <left> <right>"
+        return 1
+    fi
+
+    if [ -d "$1" ] && [ -d "$2" ]; then
+        vim +"DirDiff $1 $2"
+    else
+        vim -d "$1" "$2"
+    fi
+}
+
 _do_fs() {
   if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
   local file
