@@ -184,7 +184,7 @@ fi
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 
 # asdf version manager
-ASDF_DIR="$HOME/.asdf"
+ASDF_DIR="/opt/asdf-vm"
 # setup some additional completions
 [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
 [[ -f "$ASDF_DIR/asdf.sh" ]] && source "$ASDF_DIR/asdf.sh"
