@@ -175,9 +175,9 @@ unalias j
 command -v thefuck &> /dev/null && eval $(thefuck --alias fck)
 
 
-# [[ -z $SSH_CONNECTION ]] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
 if command -v gpg-connect-agent &>/dev/null; then
    export GPG_TTY=$(tty)
+   [ -z "$SSH_CONNECTION" ] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
    gpg-connect-agent updatestartuptty /bye >/dev/null
 fi
 
