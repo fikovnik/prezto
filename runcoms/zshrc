@@ -196,10 +196,6 @@ _FASD_RESOLVE_SYMLINKS=1
 unalias j
 # }}}
 
-# the fuck
-command -v thefuck &> /dev/null && eval $(thefuck --alias fck)
-
-
 if command -v gpg-connect-agent &>/dev/null; then
    export GPG_TTY=$(tty)
    [ -z "$SSH_CONNECTION" ] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
