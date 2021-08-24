@@ -184,6 +184,11 @@ if command -v exa &>/dev/null; then
 fi
 # }}}
 
+# delta {{{
+if !command -v delta &>/dev/null; then
+  export GIT_PAGER=less
+fi
+# }}}
 
 # FASD {{{
 # I want to resolve links
