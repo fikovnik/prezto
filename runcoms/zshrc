@@ -26,6 +26,16 @@ _fzf_complete_pass() {
   )
 }
 
+_fzf_complete_git() {
+  _fzf_complete --prompt="git> " -- "$@" < <(
+    git log --all --decorate --format='%C(bold blue)%h%C(reset) %C(bold green)(%ah)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'
+  )
+}
+
+_fzf_complete_git_post() {
+  cut -f 1 -d' '
+}
+
 FZF_PREVIEW_MAX_LINES=100
 FZF_PREVIEW_DIR_OPTS="tree -L 3 -C {} 2>/dev/null | head -$FZF_PREVIEW_MAX_LINES"
 FZF_PREVIEW_FILE_OPTS="bat -p --color=always --line-range :$FZF_PREVIEW_MAX_LINES {} 2> /dev/null"
