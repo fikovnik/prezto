@@ -209,7 +209,7 @@ fi
 ASDF_DIR="/opt/asdf-vm"
 # setup some additional completions
 [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
-[[ -f "$ASDF_DIR/asdf.sh" ]] && source "$ASDF_DIR/asdf.sh"
+__source_if_exists "$ASDF_DIR/asdf.sh"
 
 package-install() {
   yay -Slq | fzf --multi --preview 'yay -Si {1}' | xargs yay -S
