@@ -160,6 +160,7 @@ alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias rust=evcxr
 alias emacs='emacs -nw'
 alias vi=vim
+alias open=o
 
 HISTSIZE=50000
 SAVEHIST=50000
