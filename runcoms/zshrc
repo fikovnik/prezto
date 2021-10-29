@@ -80,32 +80,38 @@ vdiff () {
 }
 
 _do_fs() {
-  if [ ! "$#" -gt 0 ]; then echo "Need a string to search for!"; return 1; fi
-  local file
-  file="$(rg --max-count=1 --ignore-case --files-with-matches --no-messages $_DO_FS_EXTRA "$*" | fzf -m  --exit-0 --preview="rg --ignore-case --pretty --context 10 '"$*"' {}")"
-  if [ $? -eq 0 ]; then
-    [[ -n "$file" ]] && xargs $VISUAL <<< $file
+  if [ "$#" -ne 1 ]; then echo "Need a string to search for!"; return 1; fi
+  local query files
+  query=$1
+  files="$(rg --max-count=1 --smart-case --files-with-matches --no-messages $_DO_FS_EXTRA $query | fzf -m --exit-0 --preview="rg --smart-case --pretty --context 20 '"$query"' {}")"
+  if [ $? -eq 0 -a -n "$files" ]; then 
+    files=$(sed 's/^\(.*\)$/"\1"/' <<< $files)
+    [[ -n $files ]] && xargs "$VISUAL" <<< $files
   fi
 }
 
 fsa() {
-  _DO_FS_EXTRA="-uuu" _do_fs "$*"
+  _DO_FS_EXTRA="-uuu" _do_fs "$@"
 }
 
 fs() {
-  _do_fs "$*"
+  _do_fs "$@"
 }
 
 _do_ff() {
   local out key files cmd
   IFS=$'\n' \
-    out="$(fd --type f $_DO_FF_EXTRA "$*" | fzf -m --exit-0 --preview=$FZF_PREVIEW_OPTS --bind 'ctrl-p:toggle-preview' --preview-window hidden --expect=ctrl-o --header ":: C-p (toggle preview) C-o (open)")"
+    out="$(fd --type f $_DO_FF_EXTRA "$*" | fzf -m --exit-0 --preview=$FZF_PREVIEW_OPTS --bind 'ctrl-p:toggle-preview' --preview-window hidden --expect=ctrl-o --header ":: CR (edit) C-p (toggle preview) C-o (open)")"
   if [ $? -eq 0 ]; then
     key=$(head -1 <<< "$out")
     files=$(tail +2 <<< "$out")
-    cmd=$VISUAL
-    [[ "$key" == "ctrl-o" ]] && cmd="xdg-open"
-    [[ -n "$files" ]] && xargs $cmd <<< $files
+    [[ -z "$files" ]] && return 0 
+    files=$(sed 's/^\(.*\)$/"\1"/' <<< $files)
+    cmd="$VISUAL"
+    if [[ "$key" == "ctrl-o" ]]; then
+      cmd="xdg-open"
+    fi
+    xargs "$cmd" <<< $files
   fi
 }
 
