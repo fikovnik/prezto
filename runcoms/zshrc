@@ -165,7 +165,8 @@ __source_if_exists ~/.p10k.zsh
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias rust=evcxr
 alias emacs='emacs -nw'
-alias vi=vim
+alias vim=nvim
+alias vi=nvim
 alias open=o
 
 HISTSIZE=50000
