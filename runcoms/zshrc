@@ -84,7 +84,7 @@ _do_fs() {
   local query files
   query=$1
   files="$(rg --max-count=1 --smart-case --files-with-matches --no-messages $_DO_FS_EXTRA $query | fzf -m --exit-0 --preview="rg --smart-case --pretty --context 20 '"$query"' {}")"
-  if [ $? -eq 0 -a -n "$files" ]; then 
+  if [ $? -eq 0 -a -n "$files" ]; then
     files=$(sed 's/^\(.*\)$/"\1"/' <<< $files)
     [[ -n $files ]] && xargs "$VISUAL" <<< $files
   fi
@@ -105,7 +105,7 @@ _do_ff() {
   if [ $? -eq 0 ]; then
     key=$(head -1 <<< "$out")
     files=$(tail +2 <<< "$out")
-    [[ -z "$files" ]] && return 0 
+    [[ -z "$files" ]] && return 0
     files=$(sed 's/^\(.*\)$/"\1"/' <<< $files)
     cmd="$VISUAL"
     if [[ "$key" == "ctrl-o" ]]; then
@@ -168,6 +168,7 @@ alias emacs='emacs -nw'
 alias vim=nvim
 alias vi=nvim
 alias open=o
+alias g='git vim'
 
 HISTSIZE=50000
 SAVEHIST=50000
