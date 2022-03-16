@@ -169,6 +169,7 @@ alias vim=nvim
 alias vi=nvim
 alias open=o
 alias g='git vim'
+alias glg='git log --all --decorate --graph --oneline'
 
 HISTSIZE=50000
 SAVEHIST=50000
