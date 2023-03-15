@@ -168,8 +168,6 @@ __source_if_exists ~/.p10k.zsh
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias rust=evcxr
 alias emacs='emacs -nw'
-alias vim=nvim
-alias vi=nvim
 alias open=o
 alias g='git vim'
 alias glg='git log --all --decorate --graph --oneline'
@@ -178,8 +176,12 @@ alias mergetool='vim -c DiffviewOpen'
 HISTSIZE=50000
 SAVEHIST=50000
 
-EDITOR=vim
-VISUAL=vim
+if command -v nvim &>/dev/null; then
+  alias vim=nvim
+  alias vi=nvim
+  EDITOR=nvim
+  VISUAL=nvim
+fi
 
 alias e=$EDITOR
 alias v=xdg-open
