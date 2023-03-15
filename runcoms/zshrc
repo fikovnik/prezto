@@ -155,9 +155,12 @@ __source_if_exists() {
   [[ -f "$1" ]] && source "$1"
 }
 
+# fzf {{{
 __source_if_exists /usr/share/fzf/key-bindings.zsh
 __source_if_exists /usr/share/fzf/completion.zsh
 __source_if_exists /usr/share/doc/fzf/examples/key-bindings.zsh
+# }}}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 __source_if_exists ~/.p10k.zsh
 
@@ -170,6 +173,7 @@ alias vi=nvim
 alias open=o
 alias g='git vim'
 alias glg='git log --all --decorate --graph --oneline'
+alias mergetool='vim -c DiffviewOpen'
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -178,7 +182,6 @@ EDITOR=vim
 VISUAL=vim
 
 alias e=$EDITOR
-alias f=$EDITOR
 alias v=xdg-open
 
 # bind C-BS
@@ -196,7 +199,13 @@ fi
 
 # delta {{{
 if !command -v delta &>/dev/null; then
-  export GIT_PAGER=less
+  export GIT_PAGER=$PAGER
+fi
+# }}}
+
+# lazygit {{{
+if command -v lazygit &>/dev/null; then
+  alias lg='git lazy'
 fi
 # }}}
 
@@ -205,6 +214,14 @@ fi
 _FASD_RESOLVE_SYMLINKS=1
 unalias j
 # }}}
+
+# ghcup {{{
+__source_if_exists "/home/krikava/.ghcup/env"
+### }}}
+
+# br {{{
+__source_if_exists /home/krikava/.config/broot/launcher/bash/br
+### }}}
 
 if command -v gpg-connect-agent &>/dev/null; then
    export GPG_TTY=$(tty)
@@ -227,4 +244,4 @@ package-install() {
 package-uninstall() {
   yay -Qq | fzf --multi --preview 'yay -Qi {1}' | xargs -ro sudo yay -Rcns
 }
-__source_if_exists "/home/krikava/.ghcup/env"
+
