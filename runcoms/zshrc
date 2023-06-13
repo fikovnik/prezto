@@ -166,12 +166,13 @@ __source_if_exists ~/.p10k.zsh
 
 # dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-alias rust=evcxr
-alias emacs='emacs -nw'
 alias open=o
-alias g='git vim'
 alias glg='git log --all --decorate --graph --oneline'
 alias mergetool='vim -c DiffviewOpen'
+
+if command -v evcxr &>/dev/null; then
+  alias rust=evcxr
+fi
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -239,11 +240,4 @@ ASDF_DIR="/opt/asdf-vm"
 [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
 __source_if_exists "$ASDF_DIR/asdf.sh"
 
-package-install() {
-  yay -Slq | fzf --multi --preview 'yay -Si {1}' | xargs yay -S
-}
-
-package-uninstall() {
-  yay -Qq | fzf --multi --preview 'yay -Qi {1}' | xargs -ro sudo yay -Rcns
-}
 
