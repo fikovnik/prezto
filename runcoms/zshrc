@@ -234,7 +234,11 @@ if command -v gpg-connect-agent &>/dev/null; then
    gpg-connect-agent updatestartuptty /bye >/dev/null
 fi
 
+# rust {{{
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
+__source_if_exists "$HOME/.cargo/env"
+# }}}
+
 
 # asdf version manager
 ASDF_DIR="/opt/asdf-vm"
