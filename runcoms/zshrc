@@ -172,10 +172,6 @@ alias mergetool='vim -c DiffviewOpen'
 alias pbcopy='xclip -sel c'
 alias pcpaste='xclip -o'
 
-if command -v evcxr &>/dev/null; then
-  alias rust=evcxr
-fi
-
 HISTSIZE=50000
 SAVEHIST=50000
 
@@ -237,6 +233,11 @@ fi
 # rust {{{
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 __source_if_exists "$HOME/.cargo/env"
+
+if command -v evcxr &>/dev/null; then
+  alias rust=evcxr
+fi
+
 # }}}
 
 
