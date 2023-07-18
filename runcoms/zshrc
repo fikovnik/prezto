@@ -194,7 +194,7 @@ if command -v exa &>/dev/null; then
   alias ls='exa --group-directories-first --color=automatic'
   alias l='ls -1a'
   alias la='ll -a'
-  alias ll='ls -l --git'
+  alias ll='ls -l'
   alias lr='ll -R --tree'
 fi
 # }}}
@@ -225,8 +225,8 @@ __source_if_exists "/home/krikava/.ghcup/env"
 __source_if_exists /home/krikava/.config/broot/launcher/bash/br
 ### }}}
 
-if command -v gpg-connect-agent &>/dev/null; then
-   export GPG_TTY=$(tty)
+if command -v gpg-connect-agent > /dev/null 2>&1; then
+   export GPG_TTY=$TTY
    [ -z "$SSH_CONNECTION" ] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
    gpg-connect-agent updatestartuptty /bye >/dev/null
 fi
@@ -237,17 +237,20 @@ __source_if_exists "$HOME/.cargo/env"
 # }}}
 
 
-# asdf version manager
-ASDF_DIR="/opt/asdf-vm"
-# setup some additional completions
-[[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
-__source_if_exists "$ASDF_DIR/asdf.sh"
+# asdf {{{
+if command -v asdf > /dev/null 2>&1; then
+   ASDF_DIR="/opt/asdf-vm"
+   # setup some additional completions
+   [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
+   __source_if_exists "$ASDF_DIR/asdf.sh"
+fi
+# }}}
 
-package-install() {
-  yay -Slq | fzf --multi --preview 'yay -Si {1}' | xargs yay -S
-}
+# containers {{{
+if [[ -n "$CONTAINER_ID" ]]; then
+  alias xdg-open='distrobox-host-exec xdg-open'
+fi
+# }}}
 
-package-uninstall() {
-  yay -Qq | fzf --multi --preview 'yay -Qi {1}' | xargs -ro sudo yay -Rcns
-}
-
+# this is because of distrobox
+export SHELL=/bin/zsh
