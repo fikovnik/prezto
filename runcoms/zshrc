@@ -166,12 +166,11 @@ __source_if_exists ~/.p10k.zsh
 
 # dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-alias rust=evcxr
-alias emacs='emacs -nw'
 alias open=o
-alias g='git vim'
 alias glg='git log --all --decorate --graph --oneline'
 alias mergetool='vim -c DiffviewOpen'
+alias pbcopy='xclip -sel c'
+alias pcpaste='xclip -o'
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -234,6 +233,11 @@ fi
 # rust {{{
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 __source_if_exists "$HOME/.cargo/env"
+
+if command -v evcxr &>/dev/null; then
+  alias rust=evcxr
+fi
+
 # }}}
 
 
@@ -254,3 +258,5 @@ fi
 
 # this is because of distrobox
 export SHELL=/bin/zsh
+
+__source_if_exists "$HOME/.config/broot/launcher/bash/br"
