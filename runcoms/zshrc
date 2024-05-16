@@ -1,9 +1,16 @@
+_source_if_exists() {
+  [[ -f "$1" ]] && source "$1"
+}
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+_source_if_exists ~/.p10k.zsh
 
 # Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
@@ -26,16 +33,6 @@ _fzf_complete_pass() {
   )
 }
 
-_fzf_complete_git() {
-  _fzf_complete --prompt="git> " -- "$@" < <(
-    git log --all --decorate --format='%C(bold blue)%h%C(reset) %C(bold green)(%ah)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)'
-  )
-}
-
-_fzf_complete_git_post() {
-  cut -f 1 -d' '
-}
-
 FZF_PREVIEW_MAX_LINES=100
 FZF_PREVIEW_DIR_OPTS="tree -L 3 -C {} 2>/dev/null | head -$FZF_PREVIEW_MAX_LINES"
 FZF_PREVIEW_FILE_OPTS="bat -p --color=always --line-range :$FZF_PREVIEW_MAX_LINES {} 2> /dev/null"
@@ -43,8 +40,10 @@ FZF_PREVIEW_OPTS="($FZF_PREVIEW_FILE_OPTS || $FZF_PREVIEW_DIR_OPTS)"
 
 export FZF_CTRL_T_OPTS="--preview '$FZF_PREVIEW_OPTS' --bind 'ctrl-p:toggle-preview' --preview-window hidden --header ':: C-p (toggle preview)'"
 export FZF_ALT_C_OPTS="--preview '$FZF_PREVIEW_DIR_OPTS' --bind 'ctrl-p:toggle-preview' --preview-window hidden --header ':: C-p (toggle preview)'"
-export BAT_THEME=TwoDark
 
+_source_if_exists /usr/share/fzf/key-bindings.zsh
+_source_if_exists /usr/share/fzf/completion.zsh
+_source_if_exists /usr/share/doc/fzf/examples/key-bindings.zsh
 # }}}
 
 # functions
@@ -59,14 +58,7 @@ refresh-env() {
   fi
 }
 
-kill-server() {
-  local pid=$(lsof -Pwni tcp | sed 1d | fzf -m --prompt='kill:tcp> ' | awk '{print $2}')
-  if [ "x$pid" != "x" ]; then
-    echo $pid | xargs kill -${1:-9}
-  fi
-}
-
-vdiff () {
+vimdiff () {
     if [ $# -ne 2 ] ; then
         echo "Usage: vdiff <left> <right>"
         return 1
@@ -138,33 +130,6 @@ function j() {
   fi
 }
 
-vdiff () {
-    if [ $# -ne 2 ] ; then
-        echo "Usage: vdiff <left> <right>"
-        return 1
-    fi
-
-    if [ -d "$1" ] && [ -d "$2" ]; then
-        vim +"DirDiff $1 $2"
-    else
-        vim -d "$1" "$2"
-    fi
-}
-
-__source_if_exists() {
-  [[ -f "$1" ]] && source "$1"
-}
-
-# fzf {{{
-__source_if_exists /usr/share/fzf/key-bindings.zsh
-__source_if_exists /usr/share/fzf/completion.zsh
-__source_if_exists /usr/share/doc/fzf/examples/key-bindings.zsh
-# }}}
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-__source_if_exists ~/.p10k.zsh
-
-# dot files
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 alias open=o
 alias glg='git log --all --decorate --graph --oneline'
@@ -188,25 +153,9 @@ alias v=xdg-open
 # bind C-BS
 bindkey '^[[127;5u' backward-kill-word
 
-# exa {{{
-if command -v exa &>/dev/null; then
-  alias ls='exa --group-directories-first --color=automatic'
-  alias l='ls -1a'
-  alias la='ll -a'
-  alias ll='ls -l'
-  alias lr='ll -R --tree'
-fi
-# }}}
-
-# delta {{{
-if !command -v delta &>/dev/null; then
-  export GIT_PAGER=$PAGER
-fi
-# }}}
-
 # lazygit {{{
 if command -v lazygit &>/dev/null; then
-  alias lg='git lazy'
+  alias lg='git lg'
 fi
 # }}}
 
@@ -217,46 +166,19 @@ unalias j
 # }}}
 
 # ghcup {{{
-__source_if_exists "/home/krikava/.ghcup/env"
+_source_if_exists "/home/krikava/.ghcup/env"
 ### }}}
-
-# br {{{
-__source_if_exists /home/krikava/.config/broot/launcher/bash/br
-### }}}
-
-if command -v gpg-connect-agent > /dev/null 2>&1; then
-   export GPG_TTY=$TTY
-   [ -z "$SSH_CONNECTION" ] && export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
-   gpg-connect-agent updatestartuptty /bye >/dev/null
-fi
 
 # rust {{{
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
-__source_if_exists "$HOME/.cargo/env"
-
-if command -v evcxr &>/dev/null; then
-  alias rust=evcxr
-fi
-
+_source_if_exists "$HOME/.cargo/env"
 # }}}
-
 
 # asdf {{{
-if command -v asdf > /dev/null 2>&1; then
-   ASDF_DIR="/opt/asdf-vm"
-   # setup some additional completions
-   [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
-   __source_if_exists "$ASDF_DIR/asdf.sh"
-fi
+_source_if_exists /opt/asdf-vm/asdf.sh
 # }}}
 
-# containers {{{
-if [[ -n "$CONTAINER_ID" ]]; then
-  alias xdg-open='distrobox-host-exec xdg-open'
+# ssh on gnome
+if [[ -z "$SSH_AUTH_SOCK" && -e "$XDG_RUNTIME_DIR/gcr/ssh" ]]; then
+  export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/gcr/ssh"
 fi
-# }}}
-
-# this is because of distrobox
-export SHELL=/bin/zsh
-
-__source_if_exists "$HOME/.config/broot/launcher/bash/br"
