@@ -12,12 +12,11 @@ fi
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 _source_if_exists ~/.p10k.zsh
 
-# Source Prezto.
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
-# FZF {{{
+
 _fzf_compgen_path() {
   fd --hidden --follow --exclude ".git" . "$1"
 }
@@ -44,7 +43,6 @@ export FZF_ALT_C_OPTS="--preview '$FZF_PREVIEW_DIR_OPTS' --bind 'ctrl-p:toggle-p
 _source_if_exists /usr/share/fzf/key-bindings.zsh
 _source_if_exists /usr/share/fzf/completion.zsh
 _source_if_exists /usr/share/doc/fzf/examples/key-bindings.zsh
-# }}}
 
 # functions
 refresh-env() {
@@ -56,19 +54,6 @@ refresh-env() {
   else
     export SSH_AUTH_SOCK="$socket_path"
   fi
-}
-
-vimdiff () {
-    if [ $# -ne 2 ] ; then
-        echo "Usage: vdiff <left> <right>"
-        return 1
-    fi
-
-    if [ -d "$1" ] && [ -d "$2" ]; then
-        vim +"DirDiff $1 $2"
-    else
-        vim -d "$1" "$2"
-    fi
 }
 
 _do_fs() {
@@ -117,7 +102,6 @@ ff() {
 
 # cd into given dir or search in recently used dirs
 function j() {
-  [ $# -eq 1 ] && test -d "$1" && cd "$1" && return
   local dir
   dir="$(fasd -Rdl | rg -i "$*")"
   dir_size=$(echo "$dir" | wc -l)
@@ -130,12 +114,13 @@ function j() {
   fi
 }
 
+if command -v fzf &>/dev/null; then
+  eval "$(fzf --zsh)"
+fi
+
 alias config='git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
-alias open=o
 alias glg='git log --all --decorate --graph --oneline'
 alias mergetool='vim -c DiffviewOpen'
-alias pbcopy='xclip -sel c'
-alias pcpaste='xclip -o'
 
 HISTSIZE=50000
 SAVEHIST=50000
@@ -143,42 +128,60 @@ SAVEHIST=50000
 if command -v nvim &>/dev/null; then
   alias vim=nvim
   alias vi=nvim
-  EDITOR=nvim
-  VISUAL=nvim
+  export EDITOR=nvim
+  export VISUAL=nvim
 fi
 
 alias e=$EDITOR
-alias v=xdg-open
 
 # bind C-BS
 bindkey '^[[127;5u' backward-kill-word
 
-# lazygit {{{
+# lazygit
 if command -v lazygit &>/dev/null; then
   alias lg='git lg'
 fi
-# }}}
 
-# FASD {{{
-# I want to resolve links
+# FASD
 _FASD_RESOLVE_SYMLINKS=1
 unalias j
-# }}}
 
-# ghcup {{{
+# ghcup
 _source_if_exists "/home/krikava/.ghcup/env"
-### }}}
 
-# rust {{{
+# rust
 [[ -d "$HOME/.cargo/bin" ]] && export PATH="$PATH:$HOME/.cargo/bin"
 _source_if_exists "$HOME/.cargo/env"
-# }}}
 
-# asdf {{{
-_source_if_exists /opt/asdf-vm/asdf.sh
-# }}}
+function setup_osx() {
+  if [[ -f /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
 
-# ssh on gnome
-if [[ -z "$SSH_AUTH_SOCK" && -e "$XDG_RUNTIME_DIR/gcr/ssh" ]]; then
-  export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/gcr/ssh"
-fi
+  # that is why we want to have it early, before the prezto
+  fpath=($(brew --prefix)/share/zsh/site-functions ${fpath})
+
+  _source_if_exists $(brew --prefix asdf)/libexec/asdf.sh
+}
+
+function setup_linux() {
+  alias pbcopy='xclip -sel c'
+  alias pcpaste='xclip -o'
+
+  if command -v asdf > /dev/null 2>&1; then
+    ASDF_DIR="/opt/asdf-vm"
+    # setup some additional completions
+    [[ -d "$ASDF_DIR" ]] && fpath=("$ASDF_DIR/completions" $fpath)
+    _source_if_exists "$ASDF_DIR/asdf.sh"
+  fi
+}
+
+case $( uname -s ) in
+  Linux)
+    setup_linux
+    ;;
+  Darwin)
+    setup_osx
+    ;;
+esac
+

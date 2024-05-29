@@ -37,7 +37,6 @@ zstyle ':prezto:load' pmodule \
   'directory' \
   'spectrum' \
   'utility' \
-  'completion' \
   'history-substring-search' \
   'syntax-highlighting' \
   'prompt' \
@@ -48,11 +47,15 @@ zstyle ':prezto:load' pmodule \
   'history-substring-search' \
   'fasd' \
   'quickjump' \
-  'git-open'
+  'git-open' \
+  'homebrew' \
+  'completion'
 
 #
 # give a preview of commandline arguments when completing `kill`
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm,cmd -w -w"
+
+zstyle ':prezto:module:homebrew:alias' skip 'yes'
 
 # Autosuggestions
 #
@@ -217,7 +220,6 @@ zstyle ':prezto:module:syntax-highlighting' highlighters \
    'brackets' \
    'pattern' \
    'line' \
-   'cursor' \
    'root'
 #
 # Set syntax highlighting styles.
